@@ -50,6 +50,10 @@ store[KEY] = JSON.stringify({glassTint: 'neon', reduceEffects: 'yes', homeFocus:
   const n = s.loadConfig();
   eq([n.glassTint, n.reduceEffects, n.homeFocus, n.quietAfter, n.clock.shift, n.weather.showHours], ['violet', false, 'first', 0, true, true], 'unknown values fall back: violet, effects on, first app, never quiet, OLED care on, hours on');
 }
+store[KEY] = JSON.stringify({wallpaper: {mode: 'builtin', path: 'aurora'}});
+eq([s.loadConfig().wallpaper.mode, s.loadConfig().wallpaper.path], ['builtin', 'aurora'], 'a built-in wallpaper is kept after a restart');
+store[KEY] = JSON.stringify({wallpaper: {mode: 'builtin', path: '../../etc/passwd'}});
+eq(s.loadConfig().wallpaper.mode, 'gradient', 'an unknown built-in wallpaper falls back to the default background');
 store[KEY] = JSON.stringify({theme: 'neon'});
 eq(s.loadConfig().theme, 'black', 'an unknown theme falls back to OLED black');
 store[KEY] = '{not json';

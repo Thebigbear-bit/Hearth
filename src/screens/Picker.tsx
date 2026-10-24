@@ -1,3 +1,4 @@
+import {BUILTIN_WALLPAPERS} from '../lib/builtinwallpapers';
 import {useCallback, useEffect, useRef, useState} from 'preact/hooks';
 import {PickerIcon} from '../components/Glyph';
 import {failureText, whySuffix} from '../lib/failure';
@@ -11,14 +12,15 @@ import {
 export type WallpaperChoice =
 	| {mode: 'gradient'}
 	| {mode: 'image'; path: string}
-	| {mode: 'folder'; path: string};
+	| {mode: 'folder'; path: string}
+	| {mode: 'builtin'; path: string};
 
 interface Props {
 	onChoose: (choice: WallpaperChoice) => void;
 	onClose: () => void;
 }
 
-type RowKind = 'gradient' | 'root' | 'folder' | 'picture' | 'slideshow' | 'info' | 'retry';
+type RowKind = 'gradient' | 'builtin' | 'root' | 'folder' | 'picture' | 'slideshow' | 'info' | 'retry';
 
 interface PickerRow {
 	key: string;
@@ -52,6 +54,7 @@ function buildRows (path: string | null, roots: StorageRoot[], entries: DirEntry
 	}
 	if (path === null) {
 		const rows: PickerRow[] = [{key: 'gradient', kind: 'gradient', label: 'Default background', detail: 'Plain black, or the calm gradient, as set by the theme'}];
+		BUILTIN_WALLPAPERS.forEach((w) => rows.push({key: `builtin:${w.id}`, kind: 'builtin', label: w.label, detail: `Comes with Hearth. ${w.detail}`, path: w.id}));
 		roots.forEach((r) => rows.push({key: `root:${r.path}`, kind: 'root', label: r.label, detail: r.path, path: r.path}));
 		if (!roots.some((r) => r.path !== INTERNAL_ROOT.path)) {
 			rows.push({key: 'no-usb', kind: 'info', label: 'No USB drive found', detail: 'Plug one in, then open this screen again'});
@@ -136,6 +139,7 @@ export function Picker ({onChoose, onClose}: Props) {
 		if (!row || loading) return;
 		switch (row.kind) {
 			case 'gradient': onChoose({mode: 'gradient'}); break;
+			case 'builtin': if (row.path) onChoose({mode: 'builtin', path: row.path}); break;
 			case 'retry': setIndex(0); setAttempt((n) => n + 1); break;
 			case 'root':
 			case 'folder': if (row.path) goTo(row.path, 0); break;
@@ -160,7 +164,7 @@ export function Picker ({onChoose, onClose}: Props) {
 
 	const start = clamp(index - Math.floor(VISIBLE_ROWS / 2), 0, Math.max(0, rows.length - VISIBLE_ROWS));
 	const visible = rows.slice(start, start + VISIBLE_ROWS);
-	const iconFor = (row: PickerRow) => row.kind === 'gradient' ? 'default' : row.kind === 'retry' ? 'info' : row.kind === 'root' ? (row.path === INTERNAL_ROOT.path ? 'folder' : 'drive') : row.kind;
+	const iconFor = (row: PickerRow) => row.kind === 'gradient' ? 'default' : row.kind === 'builtin' ? 'picture' : row.kind === 'retry' ? 'info' : row.kind === 'root' ? (row.path === INTERNAL_ROOT.path ? 'folder' : 'drive') : row.kind;
 
 	return (
 		<div class="screen screen--picker">

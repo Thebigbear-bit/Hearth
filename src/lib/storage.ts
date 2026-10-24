@@ -2,13 +2,14 @@
 // (theme, sizes, margins), the clock, the wallpaper, and a few options. Persisted in
 // localStorage (private to this app on the TV).
 
+import {builtinWallpaper} from './builtinwallpapers';
 import {STORAGE_KEY, WALLPAPER} from '../config/constants';
 import type {ThemeName} from '../theme/tokens';
 import {CLOCK_FONT_IDS, type ClockFont} from './clockfont';
 import {CLOCK_COLOR_IDS, type ClockColor} from './clockcolor';
 import {validCoords, type City, type TempUnit} from './weather';
 
-export type WallpaperMode = 'gradient' | 'image' | 'folder';
+export type WallpaperMode = 'gradient' | 'image' | 'folder' | 'builtin';
 export type ClockFormat = 'tv' | '12h' | '24h';
 export type {ClockColor};
 export type ClockWeight = 200 | 300 | 400;
@@ -200,7 +201,7 @@ export function loadConfig (): UserConfig {
 		const wx: Partial<WeatherConfig> = parsed.weather || {};
 		const wc = wx.city as Partial<City> | null | undefined;
 		const city: City | null = wc && typeof wc.name === 'string' && wc.name && validCoords(wc.lat, wc.lon) ? {name: wc.name.slice(0, 60), lat: wc.lat as number, lon: wc.lon as number, detail: typeof wc.detail === 'string' ? wc.detail.slice(0, 80) : undefined} : null;
-		const mode: WallpaperMode = w.mode === 'image' || w.mode === 'folder' ? w.mode : 'gradient';
+		const mode: WallpaperMode = w.mode === 'image' || w.mode === 'folder' || (w.mode === 'builtin' && builtinWallpaper(String(w.path)) !== undefined) ? w.mode : 'gradient';
 		const path = typeof w.path === 'string' ? w.path : '';
 		const interval = typeof w.intervalSec === 'number' && w.intervalSec >= 5 ? w.intervalSec : DEFAULT_WALLPAPER.intervalSec;
 		return {

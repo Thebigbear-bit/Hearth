@@ -106,17 +106,26 @@ from the Homebrew Channel or Dev Manager.
 ### Settings
 
 - **Apps / Sources:** which apps and HDMI inputs are on the row, and their order. **Refresh list** (Apps) checks for newly installed apps.
-- **Look:** theme (OLED black or calm blue-grey), icon size (50-140 %), rows (one or two), side margin (0-300 px) and bottom margin, app names on or off, and **Reset look and clock**.
-- **Clock:** time format, size, font, thickness, vertical and horizontal position, date and AM/PM on or off.
-- **Weather:** on or off, the city, Celsius or Fahrenheit, the city name and today's high and low on or off.
+- **Look:** theme (OLED black, calm blue-grey or Glass), the **Glass colour** (Violet, Graphite, Midnight, Sunset), **Reduce effects (faster)**, icon size (50-140 %), rows (one or two),
+  side margin (0-300 px) and bottom margin, app names on or off, **When Home is pressed** (the first app, or the app opened last), **Hide the apps when idle** (never, 1, 3 or 10 minutes), and **Reset look and clock**.
+- **Clock:** time format, size, font, thickness, vertical and horizontal position, date and AM/PM on or off, the Glass cards in the top-left corner, and **Move the clock slightly (OLED care)**
+  (on by default: a few pixels every 3 minutes, so a static clock never wears into an OLED screen).
+- **Weather:** on or off, the city, Celsius or Fahrenheit, the city name, today's high and low, and the next three hours (in the Glass weather card).
   Pick a city from the list of about 75, or choose **Search for a city** and type any place name (worldwide).
 - **Wallpaper:** the picture or slideshow, interval and shuffle, **Widget colour** and **Widget opacity**.
 - **Options (rooted TVs):** the TV input; live app list; *Make this launcher the default instead of LG Home*; *Start the launcher helper at boot*;
-  *Show the LG logo when the TV starts*; *Close LG Home when the app opens* and *Close LG Home now*; and, last, the experimental *Alternative method* (webOS 5 and newer).
+  *Home button opens Hearth directly* and *Red / Green / Yellow / Blue button opens*; *Show the LG logo when the TV starts*;
+  *Close LG Home when the app opens* and *Close LG Home now*; and, last, the experimental *Alternative method* (webOS 5 and newer).
+  The remote-button rows need [LG Input Hook](https://github.com/Simon34545/lginputhook) from the Homebrew Channel (open it once after installing). Hearth reads and
+  writes Input Hook's own settings, so a button set up there or by hand shows as it is; it only adds or removes "launch" bindings on Home and the colour buttons
+  and leaves every other binding alone. *Home button opens Hearth directly* means LG Home is never shown when Home is pressed (no flash).
 
 ### Wallpaper
 
-**Settings → Wallpaper → Wallpaper** opens a folder browser: **Default background**, or a **USB drive** / **Internal storage** (`/media/developer`), where OK on a picture sets it and
+Five minimalist wallpapers come with Hearth: **Aurora**, **Dunes**, **Tide**, **Bloom** and **Horizon** (1920×1080 JPEGs of about 150-190 KB each, drawn for Hearth;
+sources in `tools/wallpapers`, rendered with `sh tools/wallpapers/render.sh`). They load straight from the app, so they also work on a TV that is not rooted, and only the one on screen is in memory.
+
+**Settings → Wallpaper → Wallpaper** opens a folder browser: **Default background**, the five built-in wallpapers, or a **USB drive** / **Internal storage** (`/media/developer`), where OK on a picture sets it and
 **Play this folder as a slideshow** plays every picture in the folder. Use JPG, PNG, WebP or BMP, ideally 1920×1080 to 3840×2160 and a few MB at most; a picture over 8 MB or over 25 megapixels is skipped
 with a message. A web app cannot read files itself, so on a rooted TV the Homebrew Channel's service reads them in small pieces. If it can't, the screen says why and offers **Try again**.
 

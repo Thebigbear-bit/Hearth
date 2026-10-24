@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+**New**
+- **Five built-in minimalist wallpapers:** Aurora, Dunes, Tide, Bloom and Horizon (Settings → Wallpaper). Small (about 150-190 KB each), loaded straight from the app, and they work without root.
+- **Glass colour** (Look): Violet, Graphite, Midnight or Sunset.
+- **Reduce effects (faster)** (Look): no blur, shadows or springy motion, for slower TVs.
+- **When Home is pressed** (Look): highlight the first app, or the app you opened last.
+- **Hide the apps when idle** (Look): the app row fades out after 1, 3 or 10 minutes; any button brings it back without doing anything else.
+- **Move the clock slightly (OLED care)** (Clock), on by default.
+- **The next three hours** in the Glass weather card (Weather → Show the next hours).
+- **Remote buttons** (Options, rooted TVs with LG Input Hook): *Home button opens Hearth directly* (no LG Home flash), and an app of your choice for each colour button.
+
 ## 1.1.0
 
 The launcher is now called **Hearth**, with a new icon, and it is faster, easier to set up and much more complete.

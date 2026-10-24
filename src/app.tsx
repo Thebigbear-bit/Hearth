@@ -593,7 +593,7 @@ export function App () {
 			: {mode: choice.mode, path: choice.path, ...keep};
 		updateConfig({...config, wallpaper});
 		setScreen('settings');
-		showToast(choice.mode === 'gradient' ? 'Default background restored' : choice.mode === 'image' ? 'Loading wallpaper…' : 'Starting slideshow…');
+		showToast(choice.mode === 'gradient' ? 'Default background restored' : choice.mode === 'builtin' ? 'Wallpaper set' : choice.mode === 'image' ? 'Loading wallpaper…' : 'Starting slideshow…');
 	}, [config, showToast]);
 
 	const onChooseCity = useCallback((city: City) => {

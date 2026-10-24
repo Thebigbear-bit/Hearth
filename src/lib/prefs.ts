@@ -12,6 +12,7 @@ import {APP_ID} from '../config/constants';
 import {CLOCK_FONT_IDS, fontLabel} from './clockfont';
 import {CLOCK_COLOR_IDS, colorInfo, type ClockColor} from './clockcolor';
 import {baseName} from './wallpaper';
+import {builtinWallpaper} from './builtinwallpapers';
 import {WEATHER_ENABLED} from '../config/features';
 import type {TempUnit} from './weather';
 import {lastFailure, type RootState} from './failure';
@@ -217,7 +218,8 @@ const BASE_PREFS: Pref[] = [
 		id: 'wallpaper', tab: 'wallpaper', label: 'Wallpaper', kind: 'action',
 		description: 'A picture, or a folder of pictures for a slideshow, from a USB drive or the TV.',
 		text: (c) => c.wallpaper.mode === 'image' ? `Picture: ${baseName(c.wallpaper.path)}`
-			: c.wallpaper.mode === 'folder' ? `Slideshow: ${baseName(c.wallpaper.path)}` : 'Default background'
+			: c.wallpaper.mode === 'folder' ? `Slideshow: ${baseName(c.wallpaper.path)}`
+			: c.wallpaper.mode === 'builtin' ? `${(builtinWallpaper(c.wallpaper.path) || {label: 'Built-in'}).label} (comes with Hearth)` : 'Default background'
 	},
 	choice('interval', 'wallpaper', 'Change picture every', 'How long each picture stays up in a slideshow.',
 		INTERVAL_VALUES, (c) => c.wallpaper.intervalSec, (c, v) => ({...c, wallpaper: {...c.wallpaper, intervalSec: v}}), intervalText),
