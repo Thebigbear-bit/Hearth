@@ -732,6 +732,9 @@ html, body {
 @supports not (display: grid) {
 	.clock__cards > .clock__card + .clock__card { margin-top: 0.8em; }
 }
+/* small, in the top-left corner (Settings → Clock): scaled from that corner */
+.clock--corner { transform-origin: 0 0; text-align: left; }
+.clock--corner .clock__card--time { align-items: flex-start; }
 /* a large clock: two cards of the same height would not fit above the apps, so the weather card keeps its own height */
 .clock__cards--compact { grid-auto-rows: auto; }
 .clock__card {

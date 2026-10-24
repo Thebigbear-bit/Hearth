@@ -36,6 +36,10 @@ eq([g.clock.size, g.clock.top, g.clock.weight, g.clock.color, g.clock.showDate, 
 eq([g.wallpaper.mode, g.wallpaper.intervalSec], ['folder', 60], 'bad interval falls back');
 store[KEY] = JSON.stringify({theme: 'glass'});
 eq(s.loadConfig().theme, 'glass', 'the Glass theme is kept after a restart');
+store[KEY] = JSON.stringify({clock: {corner: true}});
+eq(s.loadConfig().clock.corner, true, 'the top-left corner choice is kept after a restart');
+store[KEY] = JSON.stringify({clock: {corner: 'yes'}});
+eq(s.loadConfig().clock.corner, false, 'anything but true leaves the clock where it was');
 store[KEY] = JSON.stringify({theme: 'neon'});
 eq(s.loadConfig().theme, 'black', 'an unknown theme falls back to OLED black');
 store[KEY] = '{not json';
@@ -141,7 +145,7 @@ store[KEY] = JSON.stringify({clock: {font: 'comic-sans'}});
 eq(s.loadConfig().clock.font, 'inter', 'an unknown clock font falls back to Inter');
 store[KEY] = JSON.stringify({clock: {size: 100}});
 eq(s.loadConfig().clock.font, 'inter', 'settings from an older version (no font) get Inter');
-eq(p.optionsFor('clock', c0).map((o) => o.id).join(','), 'clockFormat,clockSize,clockFont,clockWeight,clockTop,clockLeft,showDate,showPeriod', 'the Clock tab has the font option after the size');
+eq(p.optionsFor('clock', c0).map((o) => o.id).join(','), 'clockFormat,clockSize,clockFont,clockWeight,clockTop,clockLeft,showDate,showPeriod,clockCorner', 'the Clock tab has the font option after the size');
 const fonts = [];
 let cf = c0;
 for (let i = 0; i < 6; i++) { cf = p.applyPref(cf, 'clockFont', 'ok'); fonts.push(cf.clock.font); }

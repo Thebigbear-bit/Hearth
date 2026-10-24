@@ -9,6 +9,8 @@ import {WeatherGlyph} from './Glyph';
 /** Glass cards: space kept above the app row, and how close to the top of the screen they may be moved. */
 const GAP_ABOVE_APPS = 28;
 const MIN_TOP = 36;
+/** Glass cards in the top-left corner: where, and how much smaller. */
+const CORNER = {top: 56, left: 72, scale: 0.65};
 
 interface Props {
 	now: Date;
@@ -27,7 +29,8 @@ export function Clock ({now, format, config, weather, cards}: Props) {
 	const style: Record<string, string> = {top: `${config.top}%`, left: `${config.left}%`, fontFamily: fontFamily(config.font), '--clock-accent': info.accent};
 	if (info.gradient) style['--clock-gradient'] = info.gradient; else style.color = info.color as string;
 	if (config.opacity < 100) style.opacity = String(config.opacity / 100);
-	const classes = ['clock', info.gradient && 'clock--gradient', info.dark && 'clock--dark', cards && 'clock--cards'].filter(Boolean).join(' ');
+	const corner = !!(cards && config.corner);
+	const classes = ['clock', info.gradient && 'clock--gradient', info.dark && 'clock--dark', cards && 'clock--cards', corner && 'clock--corner'].filter(Boolean).join(' ');
 
 	// The stacked cards are tall: if they would reach the app row, move them up just enough to clear it. If two cards
 	// of the same height can't fit even then (a large clock), the weather card is only as tall as its content.
@@ -39,7 +42,7 @@ export function Clock ({now, format, config, weather, cards}: Props) {
 		const el = box.current;
 		const stack = el && el.firstElementChild;
 		const rows = el && el.parentElement && el.parentElement.querySelector('.rows');
-		if (!cards || !el || !stack || !rows) { setFit({lift: 0, compact: false}); return; }
+		if (!cards || corner || !el || !stack || !rows) { setFit({lift: 0, compact: false}); return; }
 		const limit = rows.getBoundingClientRect().top;
 		const moved = fit.lift;
 		const measure = (compact: boolean) => {
@@ -53,8 +56,13 @@ export function Clock ({now, format, config, weather, cards}: Props) {
 		if (!result.fits && hasWeather) result = measure(true);
 		stack.classList.toggle('clock__cards--compact', fit.compact);    // back as rendered; the state change below re-renders it
 		if (result.lift !== fit.lift || result.compact !== fit.compact) setFit({lift: result.lift, compact: result.compact});
-	}, [cards, size, config.top, config.showDate, config.font, config.weight, hasWeather, hasRange]);
-	if (cards && fit.lift) style.transform = `translate(-50%, -${fit.lift}px)`;
+	}, [cards, corner, size, config.top, config.showDate, config.font, config.weight, hasWeather, hasRange]);
+	if (cards && corner) {
+		// small, in the top-left corner: scaled from the corner, so the cards keep their proportions
+		style.top = `${CORNER.top}px`;
+		style.left = `${CORNER.left}px`;
+		style.transform = `scale(${CORNER.scale})`;
+	} else if (cards && fit.lift) style.transform = `translate(-50%, -${fit.lift}px)`;
 
 	if (cards) {
 		return (

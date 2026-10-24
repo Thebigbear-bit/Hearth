@@ -48,6 +48,8 @@ export interface ClockConfig {
 	showDate: boolean;
 	/** AM/PM beside the time (12-hour mode only) */
 	showPeriod: boolean;
+	/** Glass theme: the clock and weather cards small, in the top-left corner (instead of where top/left put them) */
+	corner: boolean;
 }
 
 export interface WeatherConfig {
@@ -127,7 +129,8 @@ export const DEFAULT_CLOCK: ClockConfig = {
 	color: 'white',
 	opacity: RANGES.clockOpacity.def,
 	showDate: true,
-	showPeriod: true
+	showPeriod: true,
+	corner: false
 };
 
 export const DEFAULT_CONFIG: UserConfig = {
@@ -202,7 +205,8 @@ export function loadConfig (): UserConfig {
 				color: CLOCK_COLOR_IDS.indexOf(c.color as ClockColor) !== -1 ? (c.color as ClockColor) : 'white',
 				opacity: ranged(c.opacity, 'clockOpacity'),
 				showDate: c.showDate !== false,
-				showPeriod: c.showPeriod !== false
+				showPeriod: c.showPeriod !== false,
+				corner: c.corner === true
 			},
 			weather: {
 				on: wx.on === true && city !== null,
