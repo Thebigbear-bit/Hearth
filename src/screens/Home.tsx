@@ -21,8 +21,8 @@ export interface Appearance {
 	/** 1 or 2 rows of apps */
 	rows: number;
 	clock: ClockConfig;
-	/** Glass theme: the weather is shown as a frosted card under the clock */
-	weatherCard?: boolean;
+	/** Glass theme: the clock and the weather are shown as two frosted cards of the same size */
+	clockCards?: boolean;
 }
 
 interface Props {
@@ -99,7 +99,7 @@ export function Home ({items, timeFormat, appearance, active, paused, onActivate
 
 	return (
 		<div class={`screen${active ? '' : ' screen--away'}`}>
-			<Clock now={now} format={timeFormat} config={appearance.clock} weather={weather} card={appearance.weatherCard} />
+			<Clock now={now} format={timeFormat} config={appearance.clock} weather={weather} cards={appearance.clockCards} />
 			<div class={classes} style={rowStyle}>
 				{sizes.map((size, r) => {
 					const start = offsets[r];

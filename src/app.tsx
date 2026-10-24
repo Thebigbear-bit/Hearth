@@ -392,7 +392,7 @@ export function App () {
 	], [apps, inputs, shownApps, shownInputs, config, systemInfo, tvInput]);
 
 	const appearance: Appearance = useMemo(
-		() => ({iconScale: config.iconScale, sideMargin: config.sideMargin, bottomMargin: config.bottomMargin, showLabels: config.showLabels, rows: config.rows, clock: config.clock, weatherCard: config.theme === 'glass'}),
+		() => ({iconScale: config.iconScale, sideMargin: config.sideMargin, bottomMargin: config.bottomMargin, showLabels: config.showLabels, rows: config.rows, clock: config.clock, clockCards: config.theme === 'glass'}),
 		[config.iconScale, config.sideMargin, config.bottomMargin, config.showLabels, config.rows, config.clock, config.theme]
 	);
 
