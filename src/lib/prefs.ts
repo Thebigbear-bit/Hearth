@@ -171,7 +171,7 @@ const BASE_PREFS: Pref[] = [
 		(c) => c.clock.showDate, (c, v) => ({...c, clock: {...c.clock, showDate: v}})),
 	toggle('showPeriod', 'clock', 'Show AM / PM', 'The small AM or PM beside the time (12-hour only).',
 		(c) => c.clock.showPeriod, (c, v) => ({...c, clock: {...c.clock, showPeriod: v}})),
-	toggle('clockCorner', 'clock', 'Small, in the top-left corner (Glass theme)', 'The clock and weather cards in the top-left corner. Clock size sets their size, as in the centre (they shrink by themselves if they would reach the apps). The position settings are not used.',
+	toggle('clockCorner', 'clock', 'In the top-left corner (Glass theme)', 'The clock and weather cards in the top-left corner. Clock size sets their size, as in the centre (they shrink by themselves if they would reach the apps). The position settings are not used.',
 		(c) => c.clock.corner, (c, v) => ({...c, clock: {...c.clock, corner: v}})),
 
 	// ----- Wallpaper -----
