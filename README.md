@@ -143,6 +143,22 @@ luna-send-pub -n 1 'luna://com.webos.service.eim/addDevice' '{"appId":"tld.my.cu
 - The "LG Home" tile still opens LG's own Home.
 - **Turn it off before uninstalling Hearth.** Reversal steps (also over SSH) and a diagnostics script are in [`src/homehook/README.md`](src/homehook/README.md).
 
+### No LG Home flash: map the Home button with LG Input Hook (optional)
+
+The helper can only react once LG Home is already on screen, so LG Home shows for about half a second after you press Home.
+To skip LG Home entirely, let [LG Input Hook](https://github.com/Simon34545/lginputhook) (in the Homebrew Channel) open Hearth when Home is pressed:
+
+1. Install **LG Input Hook** from the Homebrew Channel and open it once (this gives it root and starts it at boot).
+2. In it, press **Add keybind**, press Home on the remote to see its code, choose **Launch App** → **Hearth**, and **Save changes**.
+   Or over SSH (773 is the Home button on the remote this was tested with; check yours in `/tmp/lginput-hook-micomservice.log`):
+   ```
+   echo '{"773":{"action":"launch","id":"tld.my.customlauncher"}}' > /home/root/.config/lginputhook/keybinds.json
+   ```
+3. Keep the helper above switched on: it still covers leaving an app with Back and the TV's own start-up.
+
+This is stored with Input Hook, not with Hearth, so it survives Hearth updates. To undo it, delete the binding in Input Hook (or write `{}` to that file).
+Tested on webOS 6.5.3.
+
 The **Alternative method** row sets the TV's own `defaultApps.home` setting instead. It is experimental, may not work on webOS older than 5 (it did not on webOS 4), and needs the same care: switch it off before uninstalling.
 To undo it from a shell:
 ```
@@ -157,6 +173,8 @@ luna-send -n 1 -f luna://com.webos.settingsservice/setSystemSettings '{"category
 - **USB drive missing in the picker:** plug it in, then open the picker again. The TV must have mounted it.
 - **The weather doesn't appear:** check the TV's internet connection; it tries again by itself after 2, 10 and then 30 minutes.
 - **The Home button shows LG Home for a moment right after boot:** turn on *Start the launcher helper at boot*.
+- **LG Home flashes for a moment every time you press Home:** map the Home button with LG Input Hook (see *No LG Home flash* above).
+- **Letters instead of app icons with the live app list:** fixed in this version (icons are now read a few at a time; reading them all at once went over the Homebrew service's 200 KB output limit on webOS 6).
 - **Odd layout after changing sizes:** Settings → Look → **Reset look and clock**.
 
 ## Credits

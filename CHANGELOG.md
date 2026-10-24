@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+**Fixes**
+- **App icons showed as letters** with the live app list on TVs with many apps (seen on webOS 6.5.3 with 26 apps): all icons were read in one command, whose
+  output (about 240 KB) went over the Homebrew service's 200 KB limit, so the whole read failed. Icons are now read 4 per command, and a group that still fails
+  is retried one icon at a time.
+
+**Docs**
+- How to stop LG Home flashing when Home is pressed, by mapping the Home button to Hearth with LG Input Hook.
+
 ## 1.1.0
 
 The launcher is now called **Hearth**, with a new icon, and it is faster, easier to set up and much more complete.
