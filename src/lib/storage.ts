@@ -18,7 +18,7 @@ export const RANGES = {
 	iconScale:    {min: 50,  max: 140, step: 10, def: 100},   // % of the standard tile size
 	sideMargin:   {min: 0,   max: 300, step: 10, def: 50},    // px at 1080p, left and right of the app row
 	bottomMargin: {min: 0,   max: 200, step: 10, def: 40},    // px at 1080p, below the app row
-	clockSize:    {min: 80,  max: 220, step: 10, def: 140},   // px, height of the digits
+	clockSize:    {min: 60,  max: 220, step: 10, def: 140},   // px, height of the digits
 	clockTop:     {min: 0,   max: 70,  step: 2,  def: 28},    // % of the screen height (0 = the very top)
 	clockLeft:    {min: 0,   max: 100, step: 2,  def: 50},    // % of the screen width (where the clock's centre sits)
 	clockOpacity: {min: 10,  max: 100, step: 10, def: 100}    // % (how solid the clock, date and weather are)

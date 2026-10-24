@@ -1,5 +1,5 @@
 import {useLayoutEffect, useRef, useState} from 'preact/hooks';
-import {fullDate, liftToClear, timeParts, type TimeFormat} from '../lib/clock';
+import {fitCards, fullDate, timeParts, type CardFit, type TimeFormat} from '../lib/clock';
 import type {ClockConfig} from '../lib/storage';
 import {colorInfo} from '../lib/clockcolor';
 import {fontFamily} from '../lib/clockfont';
@@ -9,15 +9,15 @@ import {WeatherGlyph} from './Glyph';
 /** Glass cards: space kept above the app row, and how close to the top of the screen they may be moved. */
 const GAP_ABOVE_APPS = 28;
 const MIN_TOP = 36;
-/** Glass cards in the top-left corner: where, and how much smaller. */
-const CORNER = {top: 56, left: 72, scale: 0.65};
+/** Glass cards in the top-left corner: where they start. Their size is the clock size setting, as when centred. */
+const CORNER = {top: 56, left: 72};
 
 interface Props {
 	now: Date;
 	format: TimeFormat;
 	config: ClockConfig;
 	weather?: WeatherView | null;
-	/** Glass theme: the clock and the weather as two frosted cards of the same size, side by side */
+	/** Glass theme: the clock and the weather as two frosted cards of the same size, the weather under the clock */
 	cards?: boolean;
 }
 
@@ -32,36 +32,29 @@ export function Clock ({now, format, config, weather, cards}: Props) {
 	const corner = !!(cards && config.corner);
 	const classes = ['clock', info.gradient && 'clock--gradient', info.dark && 'clock--dark', cards && 'clock--cards', corner && 'clock--corner'].filter(Boolean).join(' ');
 
-	// The stacked cards are tall: if they would reach the app row, move them up just enough to clear it. If two cards
-	// of the same height can't fit even then (a large clock), the weather card is only as tall as its content.
+	// The stacked cards are tall. Centred, they move up to clear the app row; in the corner they stay put and shrink
+	// instead. When two cards of the same height can't fit, the weather card is only as tall as its content.
+	// offsetTop/offsetHeight are the layout size, before the move or shrink already applied (transforms don't change them).
 	const box = useRef<HTMLDivElement>(null);
-	const [fit, setFit] = useState({lift: 0, compact: false});
+	const [fit, setFit] = useState<CardFit>({lift: 0, compact: false, scale: 1});
 	const hasWeather = !!weather;
 	const hasRange = !!(weather && weather.range);
 	useLayoutEffect(() => {
 		const el = box.current;
 		const stack = el && el.firstElementChild;
-		const rows = el && el.parentElement && el.parentElement.querySelector('.rows');
-		if (!cards || corner || !el || !stack || !rows) { setFit({lift: 0, compact: false}); return; }
-		const limit = rows.getBoundingClientRect().top;
-		const moved = fit.lift;
-		const measure = (compact: boolean) => {
-			stack.classList.toggle('clock__cards--compact', compact);
-			const r = el.getBoundingClientRect();
-			const top = r.top + moved, bottom = r.bottom + moved;
-			const lift = liftToClear(top, bottom, limit, GAP_ABOVE_APPS, MIN_TOP);
-			return {lift, compact, fits: bottom - lift + GAP_ABOVE_APPS <= limit};
-		};
-		let result = measure(false);
-		if (!result.fits && hasWeather) result = measure(true);
-		stack.classList.toggle('clock__cards--compact', fit.compact);    // back as rendered; the state change below re-renders it
-		if (result.lift !== fit.lift || result.compact !== fit.compact) setFit({lift: result.lift, compact: result.compact});
-	}, [cards, corner, size, config.top, config.showDate, config.font, config.weight, hasWeather, hasRange]);
+		const rows = el && el.parentElement && el.parentElement.querySelector('.rows') as HTMLElement | null;
+		if (!cards || !el || !stack || !rows) { if (fit.lift || fit.compact || fit.scale !== 1) setFit({lift: 0, compact: false, scale: 1}); return; }
+		const heightWith = (compact: boolean) => { stack.classList.toggle('clock__cards--compact', compact); return el.offsetHeight; };
+		const height = heightWith(false);
+		const compactHeight = hasWeather ? heightWith(true) : height;
+		stack.classList.toggle('clock__cards--compact', fit.compact);     // back as rendered; a state change below re-renders it
+		const next = fitCards(corner, el.offsetTop, height, compactHeight, rows.offsetTop, GAP_ABOVE_APPS, MIN_TOP);
+		if (next.lift !== fit.lift || next.compact !== fit.compact || next.scale !== fit.scale) setFit(next);
+	}, [cards, corner, size, config.top, config.showDate, config.showPeriod, config.font, config.weight, hasWeather, hasRange]);
 	if (cards && corner) {
-		// small, in the top-left corner: scaled from the corner, so the cards keep their proportions
 		style.top = `${CORNER.top}px`;
 		style.left = `${CORNER.left}px`;
-		style.transform = `scale(${CORNER.scale})`;
+		style.transform = fit.scale !== 1 ? `scale(${fit.scale})` : 'none';   // replaces the centring shift; shrinks from the corner (transform-origin in global.css)
 	} else if (cards && fit.lift) style.transform = `translate(-50%, -${fit.lift}px)`;
 
 	if (cards) {

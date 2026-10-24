@@ -10,4 +10,13 @@ eq(c.liftToClear(300, 812, 840, 28, 36), 0, 'exactly the gap above: not moved');
 eq(c.liftToClear(300, 1070, 840, 28, 36), 258, 'overlapping: moved up just enough to leave the gap');
 eq(c.liftToClear(100, 1070, 840, 28, 36), 64, 'never moved above the top margin, even if it still overlaps');
 eq(c.liftToClear(30, 1070, 840, 28, 36), 0, 'already above the top margin: not moved at all');
+
+// fitCards(corner, top, height, compactHeight, limit, gap, minTop); the app row starts at 840
+eq(c.fitCards(false, 300, 400, 330, 840, 28, 36), {lift: 0, compact: false, scale: 1}, 'centred, fits: left alone');
+eq(c.fitCards(false, 300, 600, 480, 840, 28, 36), {lift: 88, compact: false, scale: 1}, 'centred, too low: moved up, cards keep the same size');
+eq(c.fitCards(false, 300, 900, 650, 840, 28, 36), {lift: 138, compact: true, scale: 1}, 'centred, too tall for two equal cards: the weather card keeps its own height');
+eq(c.fitCards(true, 56, 500, 400, 840, 28, 36), {lift: 0, compact: false, scale: 1}, 'corner, fits: full size, as set');
+eq(c.fitCards(true, 56, 900, 700, 840, 28, 36), {lift: 0, compact: true, scale: 1}, 'corner, too tall: the weather card keeps its own height first');
+eq(c.fitCards(true, 56, 1100, 900, 840, 28, 36), {lift: 0, compact: true, scale: 0.84}, 'corner, still too tall: shrunk just enough to fit');
+eq(c.fitCards(true, 56, 1100, 900, 840, 28, 36).lift, 0, 'corner cards are never moved');
 process.exit(fail ? 1 : 0);

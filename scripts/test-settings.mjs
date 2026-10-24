@@ -32,7 +32,7 @@ eq([d.theme, d.iconScale, d.sideMargin, d.bottomMargin, d.clockFormat, d.clock.s
 store[KEY] = JSON.stringify({theme: 'grey', iconScale: 999, sideMargin: 33, bottomMargin: -5, clock: {size: 12, top: 29, weight: 999, color: 'neon', showDate: false}, wallpaper: {mode: 'folder', path: '/x', intervalSec: 2}});
 const g = s.loadConfig();
 eq([g.theme, g.iconScale, g.sideMargin, g.bottomMargin], ['grey', 140, 30, 0], 'out-of-range numbers are clamped and snapped');
-eq([g.clock.size, g.clock.top, g.clock.weight, g.clock.color, g.clock.showDate, g.clock.showPeriod], [80, 30, 200, 'white', false, true], 'clock values validated, missing ones default');
+eq([g.clock.size, g.clock.top, g.clock.weight, g.clock.color, g.clock.showDate, g.clock.showPeriod], [60, 30, 200, 'white', false, true], 'clock values validated, missing ones default');
 eq([g.wallpaper.mode, g.wallpaper.intervalSec], ['folder', 60], 'bad interval falls back');
 store[KEY] = JSON.stringify({theme: 'glass'});
 eq(s.loadConfig().theme, 'glass', 'the Glass theme is kept after a restart');
