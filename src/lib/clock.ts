@@ -75,3 +75,11 @@ export function fitCards (corner: boolean, top: number, height: number, compactH
 	if (top - lift + height <= room) return {lift, compact: false, scale: 1};
 	return {lift: liftToClear(top, top + compactHeight, limit, gap, minTop), compact: true, scale: 1};
 }
+
+/** OLED care: where the clock is nudged to at `time` (ms), in px. It steps round nine spots at most `reach` px from
+ *  where it was placed, one step every `stepMs`, so no part of the screen shows the same thing for hours. */
+const SHIFT_STEPS: [number, number][] = [[0, 0], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]];
+export function shiftAt (time: number, reach = 8, stepMs = 3 * 60 * 1000): {x: number; y: number} {
+	const [x, y] = SHIFT_STEPS[Math.floor(time / stepMs) % SHIFT_STEPS.length];
+	return {x: x * reach, y: y * reach};
+}

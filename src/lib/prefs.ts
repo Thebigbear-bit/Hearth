@@ -16,6 +16,9 @@ import {WEATHER_ENABLED} from '../config/features';
 import type {TempUnit} from './weather';
 import {lastFailure, type RootState} from './failure';
 import type {LogoState} from './system';
+import {COLOR_KEYS, type ColorKey, type RemoteState} from './inputhook';
+import {GLASS_TINT_COLORS, type GlassTint} from '../theme/tokens';
+import {GLASS_TINTS, QUIET_VALUES, type HomeFocus, type QuietAfter} from './storage';
 
 export type PrefTab = 'look' | 'clock' | 'weather' | 'wallpaper' | 'options';
 
@@ -33,14 +36,24 @@ export interface SystemInfo {
 	root?: RootState;
 	/** what the TV said when it could not (shown under a greyed-out row) */
 	rootDetail?: string;
+	/** the remote buttons set up through LG Input Hook (null while unknown) */
+	remote?: RemoteState | null;
+	/** app titles by id, for the colour-button rows */
+	appTitles?: Record<string, string>;
 }
 
+const KEY_LABEL: Record<ColorKey, string> = {red: 'Red', green: 'Green', yellow: 'Yellow', blue: 'Blue'};
+/** The Options rows for the colour buttons: keyRed, keyGreen, keyYellow, keyBlue. */
+export const COLOR_KEY_ROWS: Record<string, ColorKey> = {keyRed: 'red', keyGreen: 'green', keyYellow: 'yellow', keyBlue: 'blue'};
+const REMOTE_OPTIONS = ['homeButton'].concat(Object.keys(COLOR_KEY_ROWS));
+
 /** The options that run shell commands, so they can't work without root. */
-export const ROOT_OPTIONS = ['closeHome', 'useHomebrew', 'useAsHome', 'replaceHome', 'startAtBoot', 'tvInput', 'closeHomeNow', 'lgLogo'];
+export const ROOT_OPTIONS = ['closeHome', 'useHomebrew', 'useAsHome', 'replaceHome', 'startAtBoot', 'tvInput', 'closeHomeNow', 'lgLogo'].concat(REMOTE_OPTIONS);
 
 /** Why a row is greyed out, or null when it is usable. */
 export function disabledReason (id: string, info?: SystemInfo): string | null {
 	if (id === 'lgLogo' && info && info.logo === 'unsupported') return "This TV doesn't have a setting for the LG logo at start.";
+	if (REMOTE_OPTIONS.indexOf(id) !== -1 && info && info.remote && !info.remote.installed) return 'Needs LG Input Hook: install it from the Homebrew Channel and open it once, then reopen Settings.';
 	if (!info || info.root !== 'no' || ROOT_OPTIONS.indexOf(id) === -1) return null;
 	const kind = lastFailure();
 	const why = kind === 'denied' ? 'the TV refused the command.' : 'the Homebrew Channel service is not running. If this TV is rooted, open the Homebrew Channel once, then reopen Settings.';
@@ -65,6 +78,18 @@ export interface Pref {
 }
 
 const delta = (press: Press): number => (press === 'left' ? -1 : 1);
+
+function remoteText (info: SystemInfo | undefined, text: (r: RemoteState) => string): string {
+	if (!info || !info.remote) return 'Unknown';
+	if (!info.remote.installed) return 'Needs Input Hook';
+	return text(info.remote);
+}
+
+/** The next choice for a colour button: nothing, then each app in `ids`, stepping with OK (wraps) or ← →. */
+export function nextKeyApp (current: string | null, ids: string[], press: Press): string | null {
+	const values: (string | null)[] = [null, ...ids];
+	return stepValue(values, values.indexOf(current) === -1 ? null : current, delta(press), press === 'ok');
+}
 
 function toggle (id: string, tab: PrefTab, label: string, description: string, get: (c: UserConfig) => boolean, set: (c: UserConfig, v: boolean) => UserConfig): Pref {
 	return {
@@ -106,6 +131,7 @@ export function resetLook (c: UserConfig): UserConfig {
 	return {
 		...c,
 		theme: 'black',
+		glassTint: 'violet',
 		iconScale: RANGES.iconScale.def,
 		showLabels: true,
 		rows: 1,
@@ -130,13 +156,19 @@ const WEATHER_PREFS: Pref[] = [
 	toggle('weatherCityName', 'weather', 'Show the city name', 'The city\'s name before the temperature.',
 		(c) => c.weather.showCity, (c, v) => ({...c, weather: {...c.weather, showCity: v}})),
 	toggle('weatherRange', 'weather', 'Show today\'s high and low', 'For example H 31°  L 25°.',
-		(c) => c.weather.showRange, (c, v) => ({...c, weather: {...c.weather, showRange: v}}))
+		(c) => c.weather.showRange, (c, v) => ({...c, weather: {...c.weather, showRange: v}})),
+	toggle('weatherHours', 'weather', 'Show the next hours', 'The next three hours under the temperature, in the Glass theme\'s weather card.',
+		(c) => c.weather.showHours, (c, v) => ({...c, weather: {...c.weather, showHours: v}}))
 ];
 
 const BASE_PREFS: Pref[] = [
 	// ----- Look -----
 	choice('theme', 'look', 'Theme', 'OLED black keeps unused pixels off. Calm blue-grey is softer. Glass has frosted panels and tiles that lift when selected, like Apple TV.',
 		THEMES, (c) => c.theme, (c, v) => ({...c, theme: v}), (v) => THEME_TEXT[v]),
+	choice('glassTint', 'look', 'Glass colour', 'The background and card colour of the Glass theme.',
+		GLASS_TINTS, (c) => c.glassTint, (c, v) => ({...c, glassTint: v}), (v: GlassTint) => GLASS_TINT_COLORS[v].label),
+	toggle('reduceEffects', 'look', 'Reduce effects (faster)', 'No blur, shadows or springy motion. The look stays the same otherwise. Turn on if moving along the apps ever feels slow.',
+		(c) => c.reduceEffects, (c, v) => ({...c, reduceEffects: v})),
 	range('iconScale', 'look', 'Icon size', 'Make the app icons smaller or bigger. ← → adjust.',
 		'iconScale', (c) => c.iconScale, (c, v) => ({...c, iconScale: v}), (v) => `${v}%`),
 	choice('rows', 'look', 'Rows of apps', 'Show the apps in one row, or split over two rows (up/down moves between them).',
@@ -147,6 +179,10 @@ const BASE_PREFS: Pref[] = [
 		'sideMargin', (c) => c.sideMargin, (c, v) => ({...c, sideMargin: v}), (v) => `${v} px`),
 	range('bottomMargin', 'look', 'Bottom margin', 'Space below the app row. ← → adjust.',
 		'bottomMargin', (c) => c.bottomMargin, (c, v) => ({...c, bottomMargin: v}), (v) => `${v} px`),
+	choice('homeFocus', 'look', 'When Home is pressed', 'Which app is highlighted when you come back to Hearth.',
+		['first', 'last'] as const, (c) => c.homeFocus, (c, v) => ({...c, homeFocus: v}), (v: HomeFocus) => (v === 'last' ? 'The app opened last' : 'The first app')),
+	choice('quietAfter', 'look', 'Hide the apps when idle', 'After this long without a button press the app row fades out, leaving the clock, weather and wallpaper. Any button brings it back.',
+		QUIET_VALUES, (c) => c.quietAfter, (c, v) => ({...c, quietAfter: v}), (v: QuietAfter) => (v === 0 ? 'Never' : v === 1 ? 'After 1 minute' : `After ${v} minutes`)),
 
 	{
 		id: 'resetLook', tab: 'look', label: 'Reset look and clock', kind: 'action',
@@ -173,6 +209,8 @@ const BASE_PREFS: Pref[] = [
 		(c) => c.clock.showPeriod, (c, v) => ({...c, clock: {...c.clock, showPeriod: v}})),
 	toggle('clockCorner', 'clock', 'In the top-left corner (Glass theme)', 'The clock and weather cards in the top-left corner. Clock size sets their size, as in the centre (they shrink by themselves if they would reach the apps). The position settings are not used.',
 		(c) => c.clock.corner, (c, v) => ({...c, clock: {...c.clock, corner: v}})),
+	toggle('clockShift', 'clock', 'Move the clock slightly (OLED care)', 'Every 3 minutes the clock moves a few pixels, too little to notice, so it never wears into the screen.',
+		(c) => c.clock.shift, (c, v) => ({...c, clock: {...c.clock, shift: v}})),
 
 	// ----- Wallpaper -----
 	{
@@ -223,6 +261,19 @@ const BASE_PREFS: Pref[] = [
 		text: (_c, info) => (!info || info.logo === null || info.logo === undefined || info.logo === 'unsupported' ? 'Unknown' : info.logo === 'on' ? 'On' : 'Off')
 	},
 	{
+		id: 'homeButton', tab: 'options', label: 'Home button opens Hearth directly', kind: 'action',
+		description: 'LG Home is never shown when you press Home: no flash. Uses LG Input Hook (from the Homebrew Channel). Keep the helper above on for Back and start-up. OK turns it on or off.',
+		text: (_c, info) => remoteText(info, (r) => (r.home ? 'On' : 'Off'))
+	},
+	...COLOR_KEYS.map((k): Pref => ({
+		id: 'key' + KEY_LABEL[k], tab: 'options', label: `${KEY_LABEL[k]} button opens`, kind: 'action',
+		description: `An app of your choice opens when you press the ${KEY_LABEL[k].toLowerCase()} button, anywhere on the TV. Uses LG Input Hook. ← → or OK choose.`,
+		text: (_c, info) => remoteText(info, (r) => {
+			const id = r.keys[k];
+			return id ? ((info && info.appTitles && info.appTitles[id]) || id) : 'Nothing (as usual)';
+		})
+	})),
+	{
 		id: 'closeHomeNow', tab: 'options', label: 'Close LG Home now', kind: 'action',
 		description: 'Ends it right away and shows how much memory that freed.',
 		text: () => 'Run'
@@ -236,7 +287,7 @@ export function findPref (id: string): Pref | undefined {
 }
 
 /** The order of the Options tab (anything not listed goes last). */
-const OPTIONS_ORDER = ['tvInput', 'useHomebrew', 'replaceHome', 'startAtBoot', 'lgLogo', 'closeHome', 'closeHomeNow', 'useAsHome'];
+const OPTIONS_ORDER = ['tvInput', 'useHomebrew', 'replaceHome', 'startAtBoot', 'homeButton', 'keyRed', 'keyGreen', 'keyYellow', 'keyBlue', 'lgLogo', 'closeHome', 'closeHomeNow', 'useAsHome'];
 
 function orderOf (tab: PrefTab, id: string): number {
 	if (tab !== 'options') return 0;

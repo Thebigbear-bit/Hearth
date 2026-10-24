@@ -4,5 +4,6 @@ import {loadConfig} from './lib/storage';
 import {applyTokens} from './theme/tokens';
 import './theme/global.css';
 
-applyTokens(loadConfig().theme);       // theme first, so there is no flash of the wrong colours
+const initial = loadConfig();
+applyTokens(initial.theme, document.documentElement, initial.glassTint, initial.reduceEffects);       // theme first, so there is no flash of the wrong colours
 render(<App />, document.getElementById('root')!);

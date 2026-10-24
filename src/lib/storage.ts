@@ -50,8 +50,18 @@ export interface ClockConfig {
 	showPeriod: boolean;
 	/** Glass theme: the clock and weather cards small, in the top-left corner (instead of where top/left put them) */
 	corner: boolean;
+	/** OLED care: move the clock a few pixels every few minutes */
+	shift: boolean;
 }
 
+import type {GlassTint} from '../theme/tokens';
+export type {GlassTint};
+export const GLASS_TINTS: readonly GlassTint[] = ['violet', 'graphite', 'midnight', 'sunset'];
+/** Where the highlight goes when Home is pressed. */
+export type HomeFocus = 'first' | 'last';
+/** Minutes without a key press before the app row fades out (0: never). */
+export const QUIET_VALUES = [0, 1, 3, 10] as const;
+export type QuietAfter = typeof QUIET_VALUES[number];
 export interface WeatherConfig {
 	/** show the weather line under the date */
 	on: boolean;
@@ -60,6 +70,8 @@ export interface WeatherConfig {
 	showCity: boolean;
 	/** today's high and low */
 	showRange: boolean;
+	/** the next three hours (in the Glass theme's weather card) */
+	showHours: boolean;
 }
 
 export interface WallpaperConfig {
@@ -103,6 +115,12 @@ export interface UserConfig {
 	clock: ClockConfig;
 	weather: WeatherConfig;
 	wallpaper: WallpaperConfig;
+	/** the Glass theme's colour */
+	glassTint: GlassTint;
+	/** no blur and simpler motion (faster on slow TVs) */
+	reduceEffects: boolean;
+	homeFocus: HomeFocus;
+	quietAfter: QuietAfter;
 }
 
 export const DEFAULT_WALLPAPER: WallpaperConfig = {
@@ -117,7 +135,8 @@ export const DEFAULT_WEATHER: WeatherConfig = {
 	city: null,
 	unit: 'c',
 	showCity: true,
-	showRange: true
+	showRange: true,
+	showHours: true
 };
 
 export const DEFAULT_CLOCK: ClockConfig = {
@@ -130,7 +149,8 @@ export const DEFAULT_CLOCK: ClockConfig = {
 	opacity: RANGES.clockOpacity.def,
 	showDate: true,
 	showPeriod: true,
-	corner: false
+	corner: false,
+	shift: true
 };
 
 export const DEFAULT_CONFIG: UserConfig = {
@@ -151,7 +171,11 @@ export const DEFAULT_CONFIG: UserConfig = {
 	clockFormat: '12h',
 	clock: DEFAULT_CLOCK,
 	weather: DEFAULT_WEATHER,
-	wallpaper: DEFAULT_WALLPAPER
+	wallpaper: DEFAULT_WALLPAPER,
+	glassTint: 'violet',
+	reduceEffects: false,
+	homeFocus: 'first',
+	quietAfter: 0
 };
 
 function stringList (value: unknown): string[] | null {
@@ -206,21 +230,27 @@ export function loadConfig (): UserConfig {
 				opacity: ranged(c.opacity, 'clockOpacity'),
 				showDate: c.showDate !== false,
 				showPeriod: c.showPeriod !== false,
-				corner: c.corner === true
+				corner: c.corner === true,
+				shift: c.shift !== false
 			},
 			weather: {
 				on: wx.on === true && city !== null,
 				city,
 				unit: wx.unit === 'f' ? 'f' : 'c',
 				showCity: wx.showCity !== false,
-				showRange: wx.showRange !== false
+				showRange: wx.showRange !== false,
+				showHours: wx.showHours !== false
 			},
 			wallpaper: {
 				mode: path ? mode : 'gradient',
 				path,
 				intervalSec: interval,
 				shuffle: w.shuffle !== false
-			}
+			},
+			glassTint: GLASS_TINTS.indexOf(parsed.glassTint as GlassTint) !== -1 ? parsed.glassTint as GlassTint : 'violet',
+			reduceEffects: parsed.reduceEffects === true,
+			homeFocus: parsed.homeFocus === 'last' ? 'last' : 'first',
+			quietAfter: (QUIET_VALUES as readonly number[]).indexOf(parsed.quietAfter as number) !== -1 ? parsed.quietAfter as QuietAfter : 0
 		};
 	} catch {
 		return {...DEFAULT_CONFIG};

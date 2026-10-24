@@ -104,6 +104,29 @@ const GLASS: Colors = {
 
 export const THEMES: Record<ThemeName, Colors> = {black: BLACK, grey: GREY, glass: GLASS};
 
+export type GlassTint = 'violet' | 'graphite' | 'midnight' | 'sunset';
+
+/** The Glass theme's colours (Settings → Look → Glass colour): the background gradient and the cards' tint. */
+export const GLASS_TINT_COLORS: Record<GlassTint, {label: string; bg: string; start: string; mid: string; end: string; card: string}> = {
+	violet:   {label: 'Violet',   bg: '#0b0d1c', start: '#2a2f6b', mid: '#1a1d45', end: '#07080f', card: 'rgba(30, 34, 62, 0.42)'},
+	graphite: {label: 'Graphite', bg: '#0b0c0e', start: '#3a3d44', mid: '#232529', end: '#08090a', card: 'rgba(44, 46, 52, 0.45)'},
+	midnight: {label: 'Midnight', bg: '#03070d', start: '#123150', mid: '#0a1b30', end: '#02050a', card: 'rgba(16, 36, 60, 0.45)'},
+	sunset:   {label: 'Sunset',   bg: '#0d0812', start: '#7a3550', mid: '#3c1f42', end: '#0a0610', card: 'rgba(62, 30, 56, 0.42)'}
+};
+
+/** Colours for `theme`, with the Glass tint applied. */
+function colorsFor (theme: ThemeName, tint: GlassTint): Colors {
+	if (theme !== 'glass') return THEMES[theme];
+	const t = GLASS_TINT_COLORS[tint] || GLASS_TINT_COLORS.violet;
+	return {...THEMES.glass, bg: t.bg, wallpaperStart: t.start, wallpaperMid: t.mid, wallpaperEnd: t.end};
+}
+
+/** Glass card tint and the "reduce effects" switch, as attributes and a custom property on :root. */
+function applyExtras (tint: GlassTint, reduced: boolean, root: HTMLElement): void {
+	root.style.setProperty('--glass-card', (GLASS_TINT_COLORS[tint] || GLASS_TINT_COLORS.violet).card);
+	if (reduced) root.setAttribute('data-effects', 'reduced'); else root.removeAttribute('data-effects');
+}
+
 export const FONT = {
 	family: '"Inter Variable", "LG Smart UI", "Helvetica Neue", Arial, sans-serif',
 	rowLabel: 20,
@@ -138,9 +161,10 @@ export const MOTION = {
 } as const;
 
 /** Writes every token onto :root as --color-*, --font-*, --layout-*, --motion-*. */
-export function applyTokens (theme: ThemeName = 'black', root: HTMLElement = document.documentElement): void {
+export function applyTokens (theme: ThemeName = 'black', root: HTMLElement = document.documentElement, tint: GlassTint = 'violet', reduced = false): void {
 	root.setAttribute('data-theme', theme);
-	const groups: Record<string, object> = {color: THEMES[theme], font: FONT, layout: LAYOUT, motion: MOTION};
+	applyExtras(tint, reduced, root);
+	const groups: Record<string, object> = {color: colorsFor(theme, tint), font: FONT, layout: LAYOUT, motion: MOTION};
 	for (const group in groups) {
 		const values = groups[group] as Record<string, string | number>;
 		for (const key in values) {
@@ -152,9 +176,10 @@ export function applyTokens (theme: ThemeName = 'black', root: HTMLElement = doc
 }
 
 /** Switch the colour theme at runtime. */
-export function applyTheme (theme: ThemeName, root: HTMLElement = document.documentElement): void {
+export function applyTheme (theme: ThemeName, root: HTMLElement = document.documentElement, tint: GlassTint = 'violet', reduced = false): void {
 	root.setAttribute('data-theme', theme);     // global.css changes shapes and motion per theme (glass)
-	const colors = THEMES[theme] as unknown as Record<string, string>;
+	applyExtras(tint, reduced, root);
+	const colors = colorsFor(theme, tint) as unknown as Record<string, string>;
 	for (const key in colors) root.style.setProperty(`--color-${kebab(key)}`, colors[key]);
 }
 

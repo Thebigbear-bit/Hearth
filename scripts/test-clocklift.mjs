@@ -19,4 +19,12 @@ eq(c.fitCards(true, 56, 500, 400, 840, 28, 36), {lift: 0, compact: false, scale:
 eq(c.fitCards(true, 56, 900, 700, 840, 28, 36), {lift: 0, compact: true, scale: 1}, 'corner, too tall: the weather card keeps its own height first');
 eq(c.fitCards(true, 56, 1100, 900, 840, 28, 36), {lift: 0, compact: true, scale: 0.84}, 'corner, still too tall: shrunk just enough to fit');
 eq(c.fitCards(true, 56, 1100, 900, 840, 28, 36).lift, 0, 'corner cards are never moved');
+
+// OLED care
+const step = 3 * 60 * 1000;
+eq(c.shiftAt(0), {x: 0, y: 0}, 'starts where it was placed');
+eq(c.shiftAt(step), {x: 8, y: 0}, 'then a step every 3 minutes');
+eq(Array.from({length: 9}, (_, i) => c.shiftAt(i * step)).every((p) => Math.abs(p.x) <= 8 && Math.abs(p.y) <= 8), true, 'never more than 8 px away');
+eq(new Set(Array.from({length: 9}, (_, i) => JSON.stringify(c.shiftAt(i * step)))).size, 9, 'nine different spots');
+eq(c.shiftAt(9 * step), c.shiftAt(0), 'and round again');
 process.exit(fail ? 1 : 0);
