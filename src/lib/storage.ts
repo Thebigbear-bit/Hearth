@@ -186,7 +186,7 @@ export function loadConfig (): UserConfig {
 			closeHome: parsed.closeHome !== false,
 			replaceHome: parsed.replaceHome === true,
 			hookBoot: parsed.hookBoot !== false,
-			theme: parsed.theme === 'grey' ? 'grey' : 'black',
+			theme: parsed.theme === 'grey' || parsed.theme === 'glass' ? parsed.theme : 'black',
 			iconScale: ranged(parsed.iconScale, 'iconScale'),
 			showLabels: parsed.showLabels !== false,
 			rows: parsed.rows === 2 ? 2 : 1,

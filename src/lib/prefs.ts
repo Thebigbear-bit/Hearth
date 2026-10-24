@@ -92,12 +92,12 @@ export function intervalText (seconds: number): string {
 	return seconds === 3600 ? '1 hour' : `${seconds / 3600} hours`;
 }
 
-const THEMES: readonly ThemeName[] = ['black', 'grey'];
+const THEMES: readonly ThemeName[] = ['black', 'grey', 'glass'];
 const CLOCK_FORMATS: readonly ClockFormat[] = ['12h', '24h', 'tv'];
 const WEIGHTS: readonly ClockWeight[] = [200, 300, 400];
 const UNITS: readonly TempUnit[] = ['c', 'f'];
 
-const THEME_TEXT: Record<ThemeName, string> = {black: 'OLED black', grey: 'Calm blue-grey'};
+const THEME_TEXT: Record<ThemeName, string> = {black: 'OLED black', grey: 'Calm blue-grey', glass: 'Glass (Apple TV style)'};
 const FORMAT_TEXT: Record<ClockFormat, string> = {'12h': '12-hour (AM/PM)', '24h': '24-hour', tv: 'Same as the TV'};
 const WEIGHT_TEXT: Record<ClockWeight, string> = {200: 'Thin', 300: 'Light', 400: 'Regular'};
 
@@ -135,7 +135,7 @@ const WEATHER_PREFS: Pref[] = [
 
 const BASE_PREFS: Pref[] = [
 	// ----- Look -----
-	choice('theme', 'look', 'Theme', 'OLED black keeps unused pixels off. Calm blue-grey is softer.',
+	choice('theme', 'look', 'Theme', 'OLED black keeps unused pixels off. Calm blue-grey is softer. Glass has frosted panels and tiles that lift when selected, like Apple TV.',
 		THEMES, (c) => c.theme, (c, v) => ({...c, theme: v}), (v) => THEME_TEXT[v]),
 	range('iconScale', 'look', 'Icon size', 'Make the app icons smaller or bigger. ← → adjust.',
 		'iconScale', (c) => c.iconScale, (c, v) => ({...c, iconScale: v}), (v) => `${v}%`),

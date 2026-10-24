@@ -2,7 +2,7 @@
 // `applyTokens()` exposes them as CSS custom properties so the stylesheet and the
 // components read the same values.
 
-export type ThemeName = 'black' | 'grey';
+export type ThemeName = 'black' | 'grey' | 'glass';
 
 export interface Colors {
 	bg: string; wallpaperStart: string; wallpaperMid: string; wallpaperEnd: string;
@@ -73,7 +73,36 @@ const GREY: Colors = {
 	pickerBg: '#0a1118'
 };
 
-export const THEMES: Record<ThemeName, Colors> = {black: BLACK, grey: GREY};
+/** Glass, in the style of the Apple TV home screen: translucent tiles and frosted panels over a deep blue-violet
+ *  background. The shapes, blur and motion that go with it are in global.css under :root[data-theme="glass"]. */
+const GLASS: Colors = {
+	bg: '#0b0d1c',
+	wallpaperStart: '#2a2f6b',
+	wallpaperMid: '#1a1d45',
+	wallpaperEnd: '#07080f',
+	textPrimary: '#FFFFFF',
+	textSecondary: 'rgba(255, 255, 255, 0.72)',
+	textMuted: 'rgba(255, 255, 255, 0.45)',
+	tileBg: 'rgba(255, 255, 255, 0.10)',
+	tileBgFocus: 'rgba(255, 255, 255, 0.18)',
+	tileBorder: 'rgba(255, 255, 255, 0.0)',
+	tileBorderFocus: '#FFFFFF',
+	badge: '#FFFFFF',
+	badgeText: '#0b0d1c',
+	liftShadow: 'rgba(0, 0, 0, 0.55)',
+	buttonBorder: 'rgba(255, 255, 255, 0.22)',
+	buttonActiveBg: '#FFFFFF',
+	buttonActiveText: '#0b0d1c',
+	switchTrack: 'rgba(255, 255, 255, 0.22)',
+	switchTrackOn: '#34C759',
+	switchKnob: '#FFFFFF',
+	switchKnobOn: '#FFFFFF',
+	danger: '#FF6B61',
+	overlay: 'rgba(12, 14, 30, 0.45)',
+	pickerBg: 'rgba(16, 18, 36, 0.92)'
+};
+
+export const THEMES: Record<ThemeName, Colors> = {black: BLACK, grey: GREY, glass: GLASS};
 
 export const FONT = {
 	family: '"Inter Variable", "LG Smart UI", "Helvetica Neue", Arial, sans-serif',
@@ -110,6 +139,7 @@ export const MOTION = {
 
 /** Writes every token onto :root as --color-*, --font-*, --layout-*, --motion-*. */
 export function applyTokens (theme: ThemeName = 'black', root: HTMLElement = document.documentElement): void {
+	root.setAttribute('data-theme', theme);
 	const groups: Record<string, object> = {color: THEMES[theme], font: FONT, layout: LAYOUT, motion: MOTION};
 	for (const group in groups) {
 		const values = groups[group] as Record<string, string | number>;
@@ -123,6 +153,7 @@ export function applyTokens (theme: ThemeName = 'black', root: HTMLElement = doc
 
 /** Switch the colour theme at runtime. */
 export function applyTheme (theme: ThemeName, root: HTMLElement = document.documentElement): void {
+	root.setAttribute('data-theme', theme);     // global.css changes shapes and motion per theme (glass)
 	const colors = THEMES[theme] as unknown as Record<string, string>;
 	for (const key in colors) root.style.setProperty(`--color-${kebab(key)}`, colors[key]);
 }
