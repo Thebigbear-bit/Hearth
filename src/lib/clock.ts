@@ -43,3 +43,11 @@ export function timeParts (date: Date, format: TimeFormat): TimeParts {
 function pad (n: number): string {
 	return n < 10 ? `0${n}` : String(n);
 }
+
+/** How far (px) to move the clock up so its bottom stays `gap` above `limit` (the top of the app row), without
+ *  moving its top above `minTop`. `top` and `bottom` are where it is drawn when not moved. 0 when it already fits. */
+export function liftToClear (top: number, bottom: number, limit: number, gap: number, minTop: number): number {
+	const needed = bottom + gap - limit;
+	if (needed <= 0) return 0;
+	return Math.max(0, Math.min(needed, top - minTop));
+}

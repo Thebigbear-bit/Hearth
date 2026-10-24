@@ -1,9 +1,14 @@
-import {fullDate, timeParts, type TimeFormat} from '../lib/clock';
+import {useLayoutEffect, useRef, useState} from 'preact/hooks';
+import {fullDate, liftToClear, timeParts, type TimeFormat} from '../lib/clock';
 import type {ClockConfig} from '../lib/storage';
 import {colorInfo} from '../lib/clockcolor';
 import {fontFamily} from '../lib/clockfont';
 import type {WeatherView} from '../lib/weather';
 import {WeatherGlyph} from './Glyph';
+
+/** Glass cards: space kept above the app row, and how close to the top of the screen they may be moved. */
+const GAP_ABOVE_APPS = 28;
+const MIN_TOP = 36;
 
 interface Props {
 	now: Date;
@@ -24,10 +29,37 @@ export function Clock ({now, format, config, weather, cards}: Props) {
 	if (config.opacity < 100) style.opacity = String(config.opacity / 100);
 	const classes = ['clock', info.gradient && 'clock--gradient', info.dark && 'clock--dark', cards && 'clock--cards'].filter(Boolean).join(' ');
 
+	// The stacked cards are tall: if they would reach the app row, move them up just enough to clear it. If two cards
+	// of the same height can't fit even then (a large clock), the weather card is only as tall as its content.
+	const box = useRef<HTMLDivElement>(null);
+	const [fit, setFit] = useState({lift: 0, compact: false});
+	const hasWeather = !!weather;
+	const hasRange = !!(weather && weather.range);
+	useLayoutEffect(() => {
+		const el = box.current;
+		const stack = el && el.firstElementChild;
+		const rows = el && el.parentElement && el.parentElement.querySelector('.rows');
+		if (!cards || !el || !stack || !rows) { setFit({lift: 0, compact: false}); return; }
+		const limit = rows.getBoundingClientRect().top;
+		const moved = fit.lift;
+		const measure = (compact: boolean) => {
+			stack.classList.toggle('clock__cards--compact', compact);
+			const r = el.getBoundingClientRect();
+			const top = r.top + moved, bottom = r.bottom + moved;
+			const lift = liftToClear(top, bottom, limit, GAP_ABOVE_APPS, MIN_TOP);
+			return {lift, compact, fits: bottom - lift + GAP_ABOVE_APPS <= limit};
+		};
+		let result = measure(false);
+		if (!result.fits && hasWeather) result = measure(true);
+		stack.classList.toggle('clock__cards--compact', fit.compact);    // back as rendered; the state change below re-renders it
+		if (result.lift !== fit.lift || result.compact !== fit.compact) setFit({lift: result.lift, compact: result.compact});
+	}, [cards, size, config.top, config.showDate, config.font, config.weight, hasWeather, hasRange]);
+	if (cards && fit.lift) style.transform = `translate(-50%, -${fit.lift}px)`;
+
 	if (cards) {
 		return (
-			<div class={classes} style={style}>
-				<div class="clock__cards" style={{fontSize: `${Math.max(22, Math.round(size * 0.18))}px`}}>
+			<div class={classes} style={style} ref={box}>
+				<div class={`clock__cards${fit.compact ? ' clock__cards--compact' : ''}`} style={{fontSize: `${Math.max(22, Math.round(size * 0.18))}px`}}>
 					<div class="clock__card clock__card--time">
 						<TimeAndDate now={now} format={format} config={config} />
 					</div>
